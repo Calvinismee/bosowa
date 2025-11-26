@@ -57,7 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             try {
                 $sql = "UPDATE TRANSAKSI SET id_rute_tarif = :id_rute_tarif, 
-                        total = (SELECT harga FROM RUTE_TARIF WHERE id_rute_tarif = :id_rute_tarif),
+                        total = (SELECT harga FROM RUTE_TARIF WHERE id_rute_tarif = :id_rute_tarif) + 
+                                (SELECT COALESCE(SUM(jumlah), 0) FROM DETAIL_BIAYA WHERE id_transaksi = :id),
                         tanggal_diupdate = NOW()
                         WHERE id_transaksi = :id";
                 
@@ -94,6 +95,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     ':jumlah' => $jumlah
                 ]);
 
+                // Update Total Transaksi
+                $sql_update = "UPDATE TRANSAKSI SET 
+                               total = (SELECT harga FROM RUTE_TARIF WHERE id_rute_tarif = TRANSAKSI.id_rute_tarif) + 
+                                       (SELECT COALESCE(SUM(jumlah), 0) FROM DETAIL_BIAYA WHERE id_transaksi = :id)
+                               WHERE id_transaksi = :id";
+                $stmt_update = $pdo->prepare($sql_update);
+                $stmt_update->execute([':id' => $id]);
+
                 setFlashMessage('success', 'Biaya tambahan berhasil ditambahkan!');
                 header("Location: edit.php?id=" . $id);
                 exit;
@@ -118,6 +127,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt = $pdo->prepare("INSERT INTO DETAIL_BIAYA (id_transaksi, jenis_biaya, jumlah) 
                         VALUES (:id, :jenis_biaya, :jumlah)");
                 $stmt->execute([':id' => $id, ':jenis_biaya' => $jenis_biaya_baru, ':jumlah' => $jumlah]);
+
+                // Update Total Transaksi
+                $sql_update = "UPDATE TRANSAKSI SET 
+                               total = (SELECT harga FROM RUTE_TARIF WHERE id_rute_tarif = TRANSAKSI.id_rute_tarif) + 
+                                       (SELECT COALESCE(SUM(jumlah), 0) FROM DETAIL_BIAYA WHERE id_transaksi = :id)
+                               WHERE id_transaksi = :id";
+                $stmt_update = $pdo->prepare($sql_update);
+                $stmt_update->execute([':id' => $id]);
 
                 setFlashMessage('success', 'Biaya berhasil diperbarui!');
                 header("Location: edit.php?id=" . $id);
@@ -174,6 +191,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } catch (PDOException $e) {
                 $error = "Error: " . $e->getMessage();
             }
+        }
+    } elseif ($action == 'delete_biaya') {
+        $jenis_biaya = $_POST['jenis_biaya'] ?? '';
+        try {
+            $stmt = $pdo->prepare("DELETE FROM DETAIL_BIAYA WHERE id_transaksi = :id AND jenis_biaya = :jenis_biaya");
+            $stmt->execute([':id' => $id, ':jenis_biaya' => $jenis_biaya]);
+
+            // Update Total Transaksi
+            $sql_update = "UPDATE TRANSAKSI SET 
+                           total = (SELECT harga FROM RUTE_TARIF WHERE id_rute_tarif = TRANSAKSI.id_rute_tarif) + 
+                                   (SELECT COALESCE(SUM(jumlah), 0) FROM DETAIL_BIAYA WHERE id_transaksi = :id)
+                           WHERE id_transaksi = :id";
+            $stmt_update = $pdo->prepare($sql_update);
+            $stmt_update->execute([':id' => $id]);
+
+            setFlashMessage('success', 'Biaya berhasil dihapus!');
+            header("Location: edit.php?id=" . $id);
+            exit;
+        } catch (PDOException $e) {
+            $error = "Error: " . $e->getMessage();
         }
     }
 }
@@ -354,13 +391,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <h5 class="mb-0">Info Biaya</h5>
                                     </div>
                                     <div class="card-body">
-                                        <p><strong>Rute Harga:</strong> Rp <?= number_format($transaksi['total'], 0, ',', '.') ?></p>
                                         <?php 
                                         $total_biaya = 0;
                                         foreach ($detail_biaya as $biaya) {
                                             $total_biaya += $biaya['jumlah'];
                                         }
+                                        $rute_harga = $transaksi['total'] - $total_biaya;
                                         ?>
+                                        <p><strong>Rute Harga:</strong> Rp <?= number_format($rute_harga, 0, ',', '.') ?></p>
                                         <p><strong>Total Biaya Tambahan:</strong> Rp <?= number_format($total_biaya, 0, ',', '.') ?></p>
                                         <hr>
                                         <p><strong>TOTAL TRANSAKSI:</strong> <h4>Rp <?= number_format($transaksi['total'], 0, ',', '.') ?></h4></p>
@@ -398,9 +436,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                             onclick="fillBiayaForm('<?= htmlspecialchars($biaya['jenis_biaya']) ?>', <?= $biaya['jumlah'] ?>)">
                                                         <i class="fas fa-edit"></i> Edit
                                                     </button>
-                                                    <a href="hapus_biaya.php?id=<?= $id ?>&jenis=<?= urlencode($biaya['jenis_biaya']) ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus?')">
-                                                        <i class="fas fa-trash"></i> Hapus
-                                                    </a>
+                                                    <form method="POST" style="display:inline;" onsubmit="return confirm('Yakin hapus?');">
+                                                        <input type="hidden" name="action" value="delete_biaya">
+                                                        <input type="hidden" name="jenis_biaya" value="<?= htmlspecialchars($biaya['jenis_biaya']) ?>">
+                                                        <button type="submit" class="btn btn-sm btn-danger">
+                                                            <i class="fas fa-trash"></i> Hapus
+                                                        </button>
+                                                    </form>
                                                 </td>
                                             </tr>
                                             <?php endforeach; ?>
@@ -448,7 +490,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </div>
 
                                     <!-- Tunai Details -->
-                                    <div id="tunai_section" style="display: <?= $metode_saat_ini == 'tunai' || !$metode_saat_ini ? 'block' : 'none' ?>; border: 1px solid #dee2e6; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                    <div id="tunai_section" style="display: <?= $metode_saat_ini == 'tunai' ? 'block' : 'none' ?>; border: 1px solid #dee2e6; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                         <h6 class="mb-3">Detail Pembayaran Tunai</h6>
                                         <div class="mb-3">
                                             <label class="form-label">Status Setoran</label>
@@ -480,9 +522,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </div>
 
-                <div class="mt-4">
-                    <a href="read.php" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Kembali ke Daftar
+                <div class="mt-4 d-flex gap-2 justify-content-end">
+                    <a href="read.php" class="btn btn-success">
+                        <i class="fas fa-check-circle"></i> Selesai
                     </a>
                 </div>
             </div>

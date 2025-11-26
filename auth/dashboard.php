@@ -24,6 +24,34 @@ $stmt = $pdo->prepare("SELECT COALESCE(SUM(total), 0) as total_pendapatan FROM T
 $stmt->execute([':driver_id' => $driver_id]);
 $total_pendapatan = $stmt->fetch()['total_pendapatan'];
 
+// Ambil statistik transaksi TUNAI
+$stmt = $pdo->prepare("
+    SELECT 
+        COUNT(*) as total_transaksi,
+        COALESCE(SUM(t.total), 0) as total_pendapatan
+    FROM TRANSAKSI t
+    JOIN TRANSAKSI_TUNAI tt ON t.id_transaksi = tt.id_transaksi
+    WHERE t.id_user = :driver_id
+");
+$stmt->execute([':driver_id' => $driver_id]);
+$tunai_stats = $stmt->fetch();
+$stat_transaksi_tunai = $tunai_stats['total_transaksi'];
+$stat_pendapatan_tunai = $tunai_stats['total_pendapatan'];
+
+// Ambil statistik transaksi QRIS
+$stmt = $pdo->prepare("
+    SELECT 
+        COUNT(*) as total_transaksi,
+        COALESCE(SUM(t.total), 0) as total_pendapatan
+    FROM TRANSAKSI t
+    JOIN TRANSAKSI_QRIS tq ON t.id_transaksi = tq.id_transaksi
+    WHERE t.id_user = :driver_id
+");
+$stmt->execute([':driver_id' => $driver_id]);
+$qris_stats = $stmt->fetch();
+$stat_transaksi_qris = $qris_stats['total_transaksi'];
+$stat_pendapatan_qris = $qris_stats['total_pendapatan'];
+
 // Ambil transaksi TUNAI yang sudah disetor
 $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM TRANSAKSI_TUNAI WHERE id_transaksi IN (SELECT id_transaksi FROM TRANSAKSI WHERE id_user = :driver_id) AND status_setoran = 'Disetor'");
 $stmt->execute([':driver_id' => $driver_id]);
@@ -126,24 +154,66 @@ $stat_belum_disetor = $stmt->fetch()['total'];
 
         <!-- Statistik Cards -->
         <div class="row mb-4">
+            <div class="col-md-12 mb-3">
+                <h5><i class="fas fa-chart-line"></i> Ringkasan</h5>
+            </div>
+            <div class="col-md-6">
+                <div class="card card-stat">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon me-3" style="background-color: #e3f2fd; color: #1976d2;">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div>
+                                <div class="stat-number"><?= $stat_transaksi ?></div>
+                                <div class="stat-label">Total Semua Transaksi</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card card-stat">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon me-3" style="background-color: #fff3e0; color: #f57c00;">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div>
+                                <div class="stat-number">Rp <?= number_format($total_pendapatan, 0, ',', '.') ?></div>
+                                <div class="stat-label">Total Semua Pendapatan</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaksi Tunai -->
+        <div class="row mb-4">
+            <div class="col-md-12 mb-3">
+                <h5><i class="fas fa-money-bill"></i> Transaksi Tunai</h5>
+            </div>
             <div class="col-md-3">
                 <div class="card card-stat">
                     <div class="card-body">
-                        <div class="stat-icon" style="background-color: #e3f2fd; color: #1976d2;">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <div class="stat-number"><?= $stat_transaksi ?></div>
-                        <div class="stat-label">Total Transaksi</div>
+                        <div class="stat-number"><?= $stat_transaksi_tunai ?></div>
+                        <div class="stat-label">Transaksi Tunai</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card card-stat">
                     <div class="card-body">
-                        <div class="stat-icon" style="background-color: #fff3e0; color: #f57c00;">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="stat-number"><?= $stat_belum_disetor ?></div>
+                        <div class="stat-number">Rp <?= number_format($stat_pendapatan_tunai, 0, ',', '.') ?></div>
+                        <div class="stat-label">Pendapatan Tunai</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stat">
+                    <div class="card-body">
+                        <div class="stat-number text-danger"><?= $stat_belum_disetor ?></div>
                         <div class="stat-label">Belum Disetor</div>
                     </div>
                 </div>
@@ -151,22 +221,31 @@ $stat_belum_disetor = $stmt->fetch()['total'];
             <div class="col-md-3">
                 <div class="card card-stat">
                     <div class="card-body">
-                        <div class="stat-icon" style="background-color: #e8f5e9; color: #388e3c;">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="stat-number"><?= $stat_disetor ?></div>
+                        <div class="stat-number text-success"><?= $stat_disetor ?></div>
                         <div class="stat-label">Sudah Disetor</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+        </div>
+
+        <!-- Transaksi QRIS -->
+        <div class="row mb-4">
+            <div class="col-md-12 mb-3">
+                <h5><i class="fas fa-qrcode"></i> Transaksi QRIS</h5>
+            </div>
+            <div class="col-md-6">
                 <div class="card card-stat">
                     <div class="card-body">
-                        <div class="stat-icon" style="background-color: #fff3e0; color: #f57c00;">
-                            <i class="fas fa-money-bill-wave"></i>
-                        </div>
-                        <div class="stat-number">Rp <?= number_format($total_pendapatan, 0, ',', '.') ?></div>
-                        <div class="stat-label">Total Pendapatan</div>
+                        <div class="stat-number"><?= $stat_transaksi_qris ?></div>
+                        <div class="stat-label">Transaksi QRIS</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card card-stat">
+                    <div class="card-body">
+                        <div class="stat-number">Rp <?= number_format($stat_pendapatan_qris, 0, ',', '.') ?></div>
+                        <div class="stat-label">Pendapatan QRIS</div>
                     </div>
                 </div>
             </div>

@@ -18,10 +18,13 @@ $sql = "SELECT t.*,
             WHEN tq.id_transaksi IS NOT NULL THEN 'QRIS'
             ELSE 'Belum Ditentukan'
         END as metode_pembayaran,
-        tt.status_setoran
+        tt.status_setoran,
+        r.jenis as nama_rute
         FROM TRANSAKSI t
         LEFT JOIN TRANSAKSI_TUNAI tt ON t.id_transaksi = tt.id_transaksi
         LEFT JOIN TRANSAKSI_QRIS tq ON t.id_transaksi = tq.id_transaksi
+        LEFT JOIN RUTE_TARIF rt ON t.id_rute_tarif = rt.id_rute_tarif
+        LEFT JOIN RUTE r ON rt.id_rute = r.id_rute
         WHERE t.id_user = :driver_id";
 $params = [':driver_id' => $driver_id];
 
@@ -123,9 +126,8 @@ $transaksi_list = $stmt->fetchAll();
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Tanggal Dibuat</th>
-                                    <th>Rute Tarif ID</th>
+                                    <th>Rute</th>
                                     <th>Total</th>
                                     <th>Metode Pembayaran</th>
                                     <th>Aksi</th>
@@ -135,9 +137,8 @@ $transaksi_list = $stmt->fetchAll();
                                 <?php if ($transaksi_list): ?>
                                     <?php foreach ($transaksi_list as $row): ?>
                                     <tr>
-                                        <td><strong>#<?= $row['id_transaksi'] ?></strong></td>
                                         <td><?= date('d/m/Y H:i', strtotime($row['tanggal_dibuat'])) ?></td>
-                                        <td>#<?= $row['id_rute_tarif'] ?></td>
+                                        <td><?= htmlspecialchars($row['nama_rute']) ?></td>
                                         <td><strong>Rp <?= number_format($row['total'], 0, ',', '.') ?></strong></td>
                                         <td>
                                             <?php if ($row['metode_pembayaran'] == 'Tunai'): ?>

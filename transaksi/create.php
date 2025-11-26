@@ -30,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Ambil ID transaksi yang baru dibuat
             $id_transaksi = $pdo->lastInsertId();
 
-            setFlashMessage('success', 'Transaksi berhasil dibuat! Lanjutkan ke kelola biaya tambahan.');
-            header("Location: biaya.php?id=" . $id_transaksi);
+            setFlashMessage('success', 'Transaksi berhasil dibuat! Silakan lengkapi detailnya.');
+            header("Location: edit.php?id=" . $id_transaksi);
             exit;
         } catch (PDOException $e) {
             $error = "Error: " . $e->getMessage();

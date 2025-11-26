@@ -4,7 +4,7 @@
 $host = 'localhost';
 $db   = 'bosowa'; // Ganti dengan nama DB kamu
 $user = 'postgres';           // Default user postgres
-$pass = 'postgres';      // Password postgres kamu
+$pass = 'admin';      // Password postgres kamu
 $port = "5432";
 
 try {

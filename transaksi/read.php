@@ -19,22 +19,26 @@ $sql = "SELECT t.*,
             ELSE 'Belum Ditentukan'
         END as metode_pembayaran,
         tt.status_setoran,
-        r.jenis as nama_rute
+        tt.tanggal_setoran,
+        r.jenis as nama_rute,
+        rt.harga as harga_rute,
+        STRING_AGG(db.jenis_biaya || ';;' || CAST(db.jumlah AS TEXT), '||') as detail_biaya
         FROM TRANSAKSI t
         LEFT JOIN TRANSAKSI_TUNAI tt ON t.id_transaksi = tt.id_transaksi
         LEFT JOIN TRANSAKSI_QRIS tq ON t.id_transaksi = tq.id_transaksi
         LEFT JOIN RUTE_TARIF rt ON t.id_rute_tarif = rt.id_rute_tarif
         LEFT JOIN RUTE r ON rt.id_rute = r.id_rute
+        LEFT JOIN DETAIL_BIAYA db ON t.id_transaksi = db.id_transaksi
         WHERE t.id_user = :driver_id";
 $params = [':driver_id' => $driver_id];
 
 if (!empty($tanggal_mulai) && !empty($tanggal_akhir)) {
-    $sql .= " AND DATE(t.tanggal_dibuat) >= :tanggal_mulai AND DATE(t.tanggal_dibuat) <= :tanggal_akhir";
+    $sql .= " AND t.tanggal_dibuat::DATE >= :tanggal_mulai AND t.tanggal_dibuat::DATE <= :tanggal_akhir";
     $params[':tanggal_mulai'] = $tanggal_mulai;
     $params[':tanggal_akhir'] = $tanggal_akhir;
 }
 
-$sql .= " ORDER BY t.tanggal_dibuat DESC";
+$sql .= " GROUP BY t.id_transaksi, tt.id_transaksi, tq.id_transaksi, tt.status_setoran, tt.tanggal_setoran, r.jenis, rt.harga ORDER BY t.tanggal_dibuat DESC";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -139,7 +143,37 @@ $transaksi_list = $stmt->fetchAll();
                                     <tr>
                                         <td><?= date('d/m/Y H:i', strtotime($row['tanggal_dibuat'])) ?></td>
                                         <td><?= htmlspecialchars($row['nama_rute']) ?></td>
-                                        <td><strong>Rp <?= number_format($row['total'], 0, ',', '.') ?></strong></td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <strong>Rp <?= number_format($row['total'], 0, ',', '.') ?></strong>
+                                                <?php if ($row['detail_biaya']): ?>
+                                                    <button class="btn btn-sm btn-light py-0 px-1" type="button" data-bs-toggle="collapse" data-bs-target="#detail-<?= $row['id_transaksi'] ?>" aria-expanded="false">
+                                                        <i class="fas fa-chevron-down small"></i>
+                                                    </button>
+                                                <?php endif; ?>
+                                            </div>
+                                            
+                                            <?php if ($row['detail_biaya']): ?>
+                                                <div class="collapse mt-2" id="detail-<?= $row['id_transaksi'] ?>">
+                                                    <div class="card card-body p-2 bg-light border-0 small">
+                                                        <div class="d-flex justify-content-between text-muted">
+                                                            <span>Biaya Rute:</span>
+                                                            <span>Rp <?= number_format($row['harga_rute'], 0, ',', '.') ?></span>
+                                                        </div>
+                                                        <?php 
+                                                        $biaya_items = explode('||', $row['detail_biaya']);
+                                                        foreach ($biaya_items as $item):
+                                                            list($jenis, $jumlah) = explode(';;', $item);
+                                                        ?>
+                                                        <div class="d-flex justify-content-between text-primary">
+                                                            <span>+ <?= htmlspecialchars($jenis) ?>:</span>
+                                                            <span>Rp <?= number_format($jumlah, 0, ',', '.') ?></span>
+                                                        </div>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
                                         <td>
                                             <?php if ($row['metode_pembayaran'] == 'Tunai'): ?>
                                                 <span class="badge bg-success">
@@ -147,6 +181,9 @@ $transaksi_list = $stmt->fetchAll();
                                                 </span>
                                                 <?php if ($row['status_setoran']): ?>
                                                     <br><small class="text-muted"><?= htmlspecialchars($row['status_setoran']) ?></small>
+                                                <?php endif; ?>
+                                                <?php if ($row['tanggal_setoran']): ?>
+                                                    <br><small class="text-muted"><i class="fas fa-calendar-day"></i> <?= date('d/m/Y', strtotime($row['tanggal_setoran'])) ?></small>
                                                 <?php endif; ?>
                                             <?php elseif ($row['metode_pembayaran'] == 'QRIS'): ?>
                                                 <span class="badge bg-info">

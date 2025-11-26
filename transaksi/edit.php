@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     } elseif ($action == 'add_biaya') {
         $jenis_biaya = $_POST['jenis_biaya'] ?? '';
-        $jumlah = $_POST['jumlah'] ?? '';
+        $jumlah = str_replace('.', '', $_POST['jumlah'] ?? '');
 
         if (empty($jenis_biaya) || empty($jumlah)) {
             $error = "Jenis biaya dan jumlah harus diisi!";
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif ($action == 'edit_biaya') {
         $jenis_biaya_lama = $_POST['jenis_biaya_lama'] ?? '';
         $jenis_biaya_baru = $_POST['jenis_biaya_baru'] ?? '';
-        $jumlah = $_POST['jumlah'] ?? '';
+        $jumlah = str_replace('.', '', $_POST['jumlah'] ?? '');
 
         if (empty($jenis_biaya_baru) || empty($jumlah)) {
             $error = "Jenis biaya dan jumlah harus diisi!";
@@ -368,13 +368,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                                             <div class="mb-3">
                                                 <label class="form-label" for="jumlah_add">Jumlah (Rp)</label>
-                                                <input type="number" 
+                                                <input type="text" 
                                                        id="jumlah_add"
                                                        name="jumlah" 
                                                        class="form-control" 
                                                        placeholder="0"
-                                                       min="0"
-                                                       step="1000"
+                                                       onkeyup="formatRupiah(this)"
                                                        required>
                                             </div>
 
@@ -557,12 +556,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                         <div class="mb-3">
                             <label class="form-label" for="jumlah">Jumlah (Rp)</label>
-                            <input type="number" 
+                            <input type="text" 
                                    id="jumlah"
                                    name="jumlah" 
                                    class="form-control" 
-                                   min="0"
-                                   step="1000"
+                                   onkeyup="formatRupiah(this)"
                                    required>
                         </div>
                     </div>
@@ -614,6 +612,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 tunaiSection.style.display = 'none';
                 qrisSection.style.display = 'block';
             }
+        }
+
+        function formatRupiah(input) {
+            let value = input.value.replace(/[^,\d]/g, '').toString();
+            let split = value.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+            input.value = rupiah;
         }
     </script>
 </body>

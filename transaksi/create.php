@@ -15,7 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // Data Biaya Tambahan (Array)
     $biaya_jenis = $_POST['biaya_jenis'] ?? [];
-    $biaya_jumlah = $_POST['biaya_jumlah'] ?? [];
+    $biaya_jumlah = isset($_POST['biaya_jumlah']) ? array_map(function($val) {
+        return str_replace('.', '', $val);
+    }, $_POST['biaya_jumlah']) : [];
 
     // Validasi
     if (empty($id_rute_tarif)) {
@@ -284,7 +286,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small">Jumlah (Rp)</label>
-                    <input type="number" name="biaya_jumlah[]" class="form-control" placeholder="0" min="0" required>
+                    <input type="text" name="biaya_jumlah[]" class="form-control" placeholder="0" onkeyup="formatRupiah(this)" required>
                 </div>
                 <div class="col-md-2">
                     <button type="button" class="btn btn-danger w-100" onclick="this.closest('.row').remove()">
@@ -293,6 +295,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
             `;
             container.appendChild(row);
+        }
+
+        function formatRupiah(input) {
+            let value = input.value.replace(/[^,\d]/g, '').toString();
+            let split = value.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+            input.value = rupiah;
         }
     </script>
 </body>

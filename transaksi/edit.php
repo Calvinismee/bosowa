@@ -51,12 +51,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if ($action == 'update_rute') {
         $id_rute_tarif = $_POST['id_rute_tarif'] ?? '';
+        $tanggal_dibuat = $_POST['tanggal_dibuat'] ?? '';
 
         if (empty($id_rute_tarif)) {
             $error = "Rute tarif harus dipilih!";
         } else {
             try {
                 $sql = "UPDATE TRANSAKSI SET id_rute_tarif = :id_rute_tarif, 
+                        tanggal_dibuat = :tanggal_dibuat,
                         total = (SELECT harga FROM RUTE_TARIF WHERE id_rute_tarif = :id_rute_tarif) + 
                                 (SELECT COALESCE(SUM(jumlah), 0) FROM DETAIL_BIAYA WHERE id_transaksi = :id),
                         tanggal_diupdate = NOW()
@@ -65,10 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([
                     ':id_rute_tarif' => $id_rute_tarif,
+                    ':tanggal_dibuat' => $tanggal_dibuat,
                     ':id' => $id
                 ]);
 
-                setFlashMessage('success', 'Rute tarif berhasil diperbarui!');
+                setFlashMessage('success', 'Rute tarif dan tanggal berhasil diperbarui!');
                 header("Location: edit.php?id=" . $id);
                 exit;
             } catch (PDOException $e) {
@@ -159,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     // Insert/Update TUNAI
                     $status_setoran = $_POST['status_setoran'] ?? 'Belum Disetor';
-                    $tanggal_setoran = $_POST['tanggal_setoran'] ?? null;
+                    $tanggal_setoran = (!empty($_POST['tanggal_setoran']) && $status_setoran === 'Disetor') ? $_POST['tanggal_setoran'] : null;
                     
                     if ($metode_tunai) {
                         $stmt = $pdo->prepare("UPDATE TRANSAKSI_TUNAI SET status_setoran = :status, tanggal_setoran = :tanggal WHERE id_transaksi = :id");
@@ -299,6 +302,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <form method="POST" action="">
                                     <input type="hidden" name="action" value="update_rute">
                                     
+                                    <div class="mb-3">
+                                        <label class="form-label" for="tanggal_dibuat">Tanggal Transaksi</label>
+                                        <input type="date" 
+                                               id="tanggal_dibuat" 
+                                               name="tanggal_dibuat" 
+                                               class="form-control" 
+                                               value="<?= date('Y-m-d', strtotime($transaksi['tanggal_dibuat'])) ?>" 
+                                               required>
+                                    </div>
+
                                     <div class="mb-3">
                                         <label class="form-label" for="id_rute_tarif">Pilih Rute Tarif</label>
                                         <select id="id_rute_tarif"

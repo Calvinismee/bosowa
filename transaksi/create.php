@@ -29,14 +29,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $pdo->beginTransaction();
 
             // 1. Insert Transaksi
+            $tanggal_dibuat = $_POST['tanggal_dibuat'] ?? date('Y-m-d H:i:s');
             $sql = "INSERT INTO TRANSAKSI (id_user, id_rute_tarif, tanggal_dibuat, total) 
-                    VALUES (:id_user, :id_rute_tarif, NOW(), 
+                    VALUES (:id_user, :id_rute_tarif, :tanggal_dibuat, 
                             (SELECT harga FROM RUTE_TARIF WHERE id_rute_tarif = :id_rute_tarif))";
             
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 ':id_user' => $driver_id,
-                ':id_rute_tarif' => $id_rute_tarif
+                ':id_rute_tarif' => $id_rute_tarif,
+                ':tanggal_dibuat' => $tanggal_dibuat
             ]);
 
             $id_transaksi = $pdo->lastInsertId();
@@ -68,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // 3. Insert Metode Pembayaran
             if ($metode == 'tunai') {
                 $status_setoran = $_POST['status_setoran'] ?? 'Belum Disetor';
-                $tanggal_setoran = $_POST['tanggal_setoran'] ?? null;
+                $tanggal_setoran = (!empty($_POST['tanggal_setoran']) && $status_setoran === 'Disetor') ? $_POST['tanggal_setoran'] : null;
                 
                 $stmt = $pdo->prepare("INSERT INTO TRANSAKSI_TUNAI (id_transaksi, status_setoran, tanggal_setoran) VALUES (:id, :status, :tanggal)");
                 $stmt->execute([':id' => $id_transaksi, ':status' => $status_setoran, ':tanggal' => $tanggal_setoran]);
@@ -158,6 +160,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="card form-card">
                         <div class="card-body p-4">
                             <h5 class="section-title"><i class="fas fa-road"></i> Rute & Tarif</h5>
+                            <div class="mb-3">
+                                <label class="form-label" for="tanggal_dibuat">Tanggal Transaksi</label>
+                                <input type="date" 
+                                       id="tanggal_dibuat" 
+                                       name="tanggal_dibuat" 
+                                       class="form-control" 
+                                       value="<?= date('Y-m-d') ?>" 
+                                       required>
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label" for="id_rute_tarif">Pilih Rute Tarif</label>
                                 <select id="id_rute_tarif"

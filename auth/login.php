@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <h2>🚕 Taksi App</h2>
+                <h2>Bosowa App</h2>
                 <p>Login Driver</p>
             </div>
             <div class="login-body">

@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="register-container">
         <div class="register-card">
             <div class="register-header">
-                <h2>🚕 Taksi App</h2>
+                <h2>Bosowa App</h2>
                 <p>Registrasi Driver Baru</p>
             </div>
             <div class="register-body">

@@ -126,7 +126,7 @@ $stat_belum_disetor = $stmt->fetch()['total'];
     <nav class="navbar navbar-dark navbar-custom mb-4">
         <div class="container-fluid">
             <span class="navbar-brand mb-0 h5">
-                <i class="fas fa-taxi"></i> Taksi App - Dashboard Driver
+                <i class="fas fa-taxi"></i> Bosowa App - Dashboard Driver
             </span>
             <div class="d-flex align-items-center gap-3">
                 <span class="text-white">

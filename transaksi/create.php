@@ -227,14 +227,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <h6 class="mb-3">Detail Pembayaran Tunai</h6>
                                 <div class="mb-3">
                                     <label class="form-label">Status Setoran</label>
-                                    <select name="status_setoran" class="form-select">
+                                    <select name="status_setoran" id="status_setoran" class="form-select" onchange="toggleTanggalSetoran()">
                                         <option value="Belum Disetor">Belum Disetor</option>
                                         <option value="Disetor">Disetor</option>
                                     </select>
                                 </div>
-                                <div class="mb-3">
+                                <div class="mb-3" id="tanggal_setoran_container" style="display: none;">
                                     <label class="form-label">Tanggal Setoran</label>
-                                    <input type="date" name="tanggal_setoran" class="form-control">
+                                    <input type="date" name="tanggal_setoran" id="tanggal_setoran" class="form-control">
                                 </div>
                             </div>
 
@@ -269,9 +269,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (metode === 'tunai') {
                 tunaiSection.style.display = 'block';
                 qrisSection.style.display = 'none';
+                toggleTanggalSetoran();
             } else {
                 tunaiSection.style.display = 'none';
                 qrisSection.style.display = 'block';
+            }
+        }
+
+        function toggleTanggalSetoran() {
+            const status = document.getElementById('status_setoran').value;
+            const container = document.getElementById('tanggal_setoran_container');
+            const input = document.getElementById('tanggal_setoran');
+            
+            if (status === 'Disetor') {
+                container.style.display = 'block';
+                input.required = true;
+            } else {
+                container.style.display = 'none';
+                input.required = false;
+                input.value = '';
             }
         }
 

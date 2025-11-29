@@ -141,7 +141,7 @@ $transaksi_list = $stmt->fetchAll();
                                 <?php if ($transaksi_list): ?>
                                     <?php foreach ($transaksi_list as $row): ?>
                                     <tr>
-                                        <td><?= date('d/m/Y H:i', strtotime($row['tanggal_dibuat'])) ?></td>
+                                        <td><?= date('d/m/Y', strtotime($row['tanggal_dibuat'])) ?></td>
                                         <td><?= htmlspecialchars($row['nama_rute']) ?></td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">

@@ -1,11 +1,35 @@
 <?php
 // config/database.php
 
-$host = 'localhost';
-$db   = 'bosowa'; // Ganti dengan nama DB kamu
-$user = 'postgres';           // Default user postgres
-$pass = 'postgres';      // Password postgres kamu
-$port = "5432";
+// Helper function to parse .env file
+function loadEnv($path) {
+    if (!file_exists($path)) {
+        return;
+    }
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) {
+            continue;
+        }
+        list($name, $value) = explode('=', $line, 2);
+        $name = trim($name);
+        $value = trim($value);
+        if (!array_key_exists($name, $_SERVER) && !array_key_exists($name, $_ENV)) {
+            putenv(sprintf('%s=%s', $name, $value));
+            $_ENV[$name] = $value;
+            $_SERVER[$name] = $value;
+        }
+    }
+}
+
+// Load .env file
+loadEnv(__DIR__ . '/../.env');
+
+$host = getenv('DB_HOST') ?: 'localhost';
+$db   = getenv('DB_DATABASE') ?: 'bosowa';
+$user = getenv('DB_USERNAME') ?: 'postgres';
+$pass = getenv('DB_PASSWORD') ?: 'postgres';
+$port = getenv('DB_PORT') ?: '5432';
 
 try {
     $dsn = "pgsql:host=$host;port=$port;dbname=$db;";

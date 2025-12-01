@@ -25,23 +25,11 @@ function loadEnv($path) {
 // Load .env file
 loadEnv(__DIR__ . '/../.env');
 
-// Check for DATABASE_URL (Railway/Heroku style)
-$databaseUrl = getenv('DATABASE_URL');
-
-if ($databaseUrl) {
-    $url = parse_url($databaseUrl);
-    $host = $url['host'];
-    $port = $url['port'] ?? 5432;
-    $user = $url['user'];
-    $pass = $url['pass'];
-    $db   = ltrim($url['path'], '/');
-} else {
-    $host = getenv('DB_HOST') ?: 'localhost';
-    $db   = getenv('DB_DATABASE') ?: 'bosowa';
-    $user = getenv('DB_USERNAME') ?: 'postgres';
-    $pass = getenv('DB_PASSWORD') ?: 'postgres';
-    $port = getenv('DB_PORT') ?: '5432';
-}
+$host = getenv('DB_HOST') ?: 'localhost';
+$db   = getenv('DB_DATABASE') ?: 'bosowa';
+$user = getenv('DB_USERNAME') ?: 'postgres';
+$pass = getenv('DB_PASSWORD') ?: 'postgres';
+$port = getenv('DB_PORT') ?: '5432';
 
 try {
     $dsn = "pgsql:host=$host;port=$port;dbname=$db;";

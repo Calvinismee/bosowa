@@ -228,7 +228,7 @@ foreach ($detail_biaya as $biaya) {
     <div class="print-container">
         <!-- Header -->
         <div class="print-header">
-            <h1><i class="fas fa-taxi" style="margin-right: 10px;"></i>TAKSI APP</h1>
+            <h1><i class="fas fa-taxi" style="margin-right: 10px;"></i>BOSOWA APP</h1>
             <div class="subtitle">Struk Transaksi</div>
         </div>
 
@@ -335,7 +335,7 @@ foreach ($detail_biaya as $biaya) {
 
         <!-- Footer -->
         <div class="footer">
-            <p>Terima kasih telah menggunakan Taksi App</p>
+            <p>Terima kasih telah menggunakan Bosowa App</p>
             <p>Dicetak pada: <?= date('d/m/Y H:i:s') ?></p>
         </div>
     </div>

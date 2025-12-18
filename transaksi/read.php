@@ -85,7 +85,7 @@ $transaksi_list = $stmt->fetchAll();
         <!-- Header -->
         <div class="row mb-4">
             <div class="col-md-8">
-                <h3>Daftar Transaksi Anda</h3>
+                <h3>Histori Transaksi Anda</h3>
                 <p class="text-muted">Total: <?= count($transaksi_list) ?> transaksi</p>
             </div>
             <div class="col-md-4 text-end">

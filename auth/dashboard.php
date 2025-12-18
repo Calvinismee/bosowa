@@ -135,6 +135,9 @@ $stat_belum_disetor = $stmt->fetch()['total'];
                 <span class="text-white">
                     <i class="fas fa-user"></i> <?= htmlspecialchars($driver_name) ?>
                 </span>
+                <a href="profile.php" class="btn btn-sm btn-outline-light" title="Lihat Profil & Kendaraan">
+                    <i class="fas fa-id-card"></i> Profil
+                </a>
                 <a href="logout.php" class="btn btn-sm btn-light">Logout</a>
             </div>
         </div>

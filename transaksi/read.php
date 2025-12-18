@@ -197,6 +197,9 @@ $transaksi_list = $stmt->fetchAll();
                                             <a href="edit.php?id=<?= $row['id_transaksi'] ?>" class="btn btn-sm btn-warning">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
+                                            <a href="print.php?id=<?= $row['id_transaksi'] ?>" class="btn btn-sm btn-info" target="_blank">
+                                                <i class="fas fa-print"></i> Print
+                                            </a>
                                             <a href="delete.php?id=<?= $row['id_transaksi'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus transaksi ini?')">
                                                 <i class="fas fa-trash"></i> Hapus
                                             </a>

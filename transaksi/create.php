@@ -309,7 +309,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             row.innerHTML = `
                 <div class="col-md-6">
                     <label class="form-label small">Jenis Biaya</label>
-                    <input type="text" name="biaya_jenis[]" class="form-control" placeholder="Contoh: Tol" required>
+                    <select name="biaya_jenis[]" class="form-select" required>
+                        <option value="">-- Pilih Jenis Biaya --</option>
+                        <option value="Tol">Tol</option>
+                        <option value="Parkir">Parkir</option>
+                        <option value="Bensin">Bensin</option>
+                    </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small">Jumlah (Rp)</label>

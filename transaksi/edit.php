@@ -371,12 +371,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             
                                             <div class="mb-3">
                                                 <label class="form-label" for="jenis_biaya_add">Jenis Biaya</label>
-                                                <input type="text" 
-                                                       id="jenis_biaya_add"
-                                                       name="jenis_biaya" 
-                                                       class="form-control" 
-                                                       placeholder="Contoh: Tol, Parkir, dll"
-                                                       required>
+                                                <select name="jenis_biaya" 
+                                                        id="jenis_biaya_add"
+                                                        class="form-select" 
+                                                        required>
+                                                    <option value="">-- Pilih Jenis Biaya --</option>
+                                                    <option value="Tol">Tol</option>
+                                                    <option value="Parkir">Parkir</option>
+                                                    <option value="Bensin">Bensin</option>
+                                                </select>
                                             </div>
 
                                             <div class="mb-3">
@@ -560,11 +563,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label" for="jenis_biaya_baru">Jenis Biaya</label>
-                            <input type="text" 
-                                   id="jenis_biaya_baru"
-                                   name="jenis_biaya_baru" 
-                                   class="form-control" 
-                                   required>
+                            <select id="jenis_biaya_baru"
+                                    name="jenis_biaya_baru" 
+                                    class="form-select" 
+                                    required>
+                                <option value="">-- Pilih Jenis Biaya --</option>
+                                <option value="Tol">Tol</option>
+                                <option value="Parkir">Parkir</option>
+                                <option value="Bensin">Bensin</option>
+                            </select>
                         </div>
 
                         <div class="mb-3">

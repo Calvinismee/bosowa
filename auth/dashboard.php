@@ -6,6 +6,9 @@ require_once 'session.php';
 // Pastikan driver sudah login
 requireDriverLogin();
 
+// Cek status driver, jika nonaktif logout dan tampilkan pesan
+checkDriverStatus();
+
 $driver_id = getLoggedInDriverId();
 $driver_name = getLoggedInDriverName();
 

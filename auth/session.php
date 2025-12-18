@@ -17,10 +17,12 @@ function isDriverLoggedIn() {
  * Login driver
  * @param int $driver_id
  * @param string $driver_name
+ * @param string $status Status driver (aktif/nonaktif)
  */
-function loginDriver($driver_id, $driver_name) {
+function loginDriver($driver_id, $driver_name, $status = 'aktif') {
     $_SESSION['driver_id'] = $driver_id;
     $_SESSION['driver_name'] = $driver_name;
+    $_SESSION['driver_status'] = $status;
     $_SESSION['login_time'] = time();
 }
 
@@ -50,12 +52,43 @@ function getLoggedInDriverName() {
 }
 
 /**
+ * Get status driver yang sedang login
+ * @return string|null
+ */
+function getLoggedInDriverStatus() {
+    return isset($_SESSION['driver_status']) ? $_SESSION['driver_status'] : null;
+}
+
+/**
  * Redirect ke login jika belum login
  */
 function requireDriverLogin() {
     if (!isDriverLoggedIn()) {
         header("Location: login.php");
         exit;
+    }
+}
+
+/**
+ * Cek status driver, jika nonaktif redirect ke halaman status tidak aktif
+ */
+function checkDriverStatus() {
+    global $pdo;
+    
+    if (isDriverLoggedIn()) {
+        $driver_id = getLoggedInDriverId();
+        
+        // Ambil status terbaru dari database
+        $stmt = $pdo->prepare("SELECT status FROM DRIVER WHERE id_user = :id");
+        $stmt->execute([':id' => $driver_id]);
+        $result = $stmt->fetch();
+        
+        if ($result && $result['status'] !== 'aktif') {
+            // Destroy session dan redirect ke halaman status tidak aktif
+            session_destroy();
+            header("Location: status_inactive.php");
+            exit;
+        }
     }
 }
 ?>

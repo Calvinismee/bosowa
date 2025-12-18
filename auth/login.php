@@ -18,8 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (empty($username) || empty($password)) {
         $error = "Username dan password harus diisi!";
     } else {
-        // Query cek username dan password
-        $sql = "SELECT id_user, nama_driver FROM DRIVER WHERE username = :username AND password = :password AND status = 'aktif'";
+        // Query cek username dan password (tanpa filter status dulu)
+        $sql = "SELECT id_user, nama_driver, status FROM DRIVER WHERE username = :username AND password = :password";
         $stmt = $pdo->prepare($sql);
         
         try {
@@ -31,13 +31,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $driver = $stmt->fetch();
             
             if ($driver) {
-                // Login berhasil
-                loginDriver($driver['id_user'], $driver['nama_driver']);
-                setFlashMessage('success', 'Selamat datang, ' . $driver['nama_driver'] . '!');
-                header("Location: dashboard.php");
-                exit;
+                // Cek status user
+                if ($driver['status'] !== 'aktif') {
+                    $error = "Status tidak aktif. Tidak bisa menggunakan aplikasi. Hubungi administrator untuk mengaktifkan akun Anda.";
+                } else {
+                    // Login berhasil
+                    loginDriver($driver['id_user'], $driver['nama_driver'], $driver['status']);
+                    setFlashMessage('success', 'Selamat datang, ' . $driver['nama_driver'] . '!');
+                    header("Location: dashboard.php");
+                    exit;
+                }
             } else {
-                $error = "Username atau password salah, atau akun tidak aktif!";
+                $error = "Username atau password salah!";
             }
         } catch (PDOException $e) {
             $error = "Error: " . $e->getMessage();
